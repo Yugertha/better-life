@@ -21,7 +21,20 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
-  final List _pages = [Profilepage(), Foodpage(), Fitnesspage()];
+  //final List _pages = [Profilepage(), Foodpage(), Fitnesspage()];
+
+  Widget _getPage(int index) {
+    switch (index) {
+      case 0:
+        return Profilepage();
+      case 1:
+        return Foodpage();
+      case 2:
+        return Fitnesspage();
+      default:
+        return Profilepage();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +52,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: _pages[_setIndex],
+      body: _getPage(_setIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _setIndex,
         onTap: navigateIndex,
