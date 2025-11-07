@@ -73,6 +73,8 @@ class _FoodpageState extends State<Foodpage> {
             onPressed: () {
               Navigator.pop(context);
               addCalories();
+              nameController.clear();
+              countController.clear();
             },
             child: const Text('Add'),
           ),
@@ -96,15 +98,19 @@ class _FoodpageState extends State<Foodpage> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text('There was an Error '));
-          } else if (!snapshot.hasData) {
-            return const Center(child: Text('There is no data'));
+          }
+          final dataList = snapshot.data ?? [];
+          if (dataList.length == 0) {
+            print('the database is empty');
+          } else {
+            print(
+              'the database has ${dataList.length} entries with ${dataList[0].name} as the first entry',
+            );
           }
 
-          final dataList = snapshot.data!;
-
-          print(
-            'the database has ${dataList.length} entries with ${dataList[0].name} as the first entry',
-          );
+          if (dataList.isEmpty) {
+            return const Center(child: Text('The database is empty'));
+          }
 
           return Center(
             //child: Text('the database has ${dataList.length} entries.'),
@@ -120,7 +126,7 @@ class _FoodpageState extends State<Foodpage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: () => deleteCalories(index),
+                        onPressed: () => deleteCalories(dataEntry.id),
                         icon: Icon(Icons.delete),
                       ),
                     ],
