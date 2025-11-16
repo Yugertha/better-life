@@ -16,6 +16,12 @@ class WorkoutDao extends DatabaseAccessor<AppDatabase> with _$WorkoutDaoMixin {
 
   Stream<List<WorkoutEntry>> streamWorkouts() => select(workout).watch();
 
+  Future<bool> updateWorkout(WorkoutCompanion entry) =>
+      update(workout).replace(entry);
+
+  Future<WorkoutEntry?> getWorkoutsById(int id) =>
+      (select(workout)..where((t) => t.id.equals(id))).getSingleOrNull();
+
   Future<int> deleteWorkout(int id) =>
       (delete(workout)..where((t) => t.id.equals(id))).go();
 }

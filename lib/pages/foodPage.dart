@@ -36,6 +36,60 @@ class _FoodpageState extends State<Foodpage> {
     setState(() {});
   }
 
+  Future<void> updateCalories(int id) async {
+    deleteCalories(id);
+    addCalories();
+    setState(() {});
+  }
+
+  Future<void> updateOpenCalories(int id) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Update Meal'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Meal Name'),
+              ),
+
+              const SizedBox(height: 12),
+              TextField(
+                controller: countController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Calorie Amount'),
+              ),
+            ],
+          ),
+        ),
+
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              nameController.clear();
+              countController.clear();
+            },
+            child: const Text('Cancel'),
+          ),
+
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              updateCalories(id);
+              nameController.clear();
+              countController.clear();
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> openNewCalories() {
     return showDialog(
       context: context,
@@ -100,7 +154,7 @@ class _FoodpageState extends State<Foodpage> {
             return const Center(child: Text('There was an Error '));
           }
           final dataList = snapshot.data ?? [];
-          if (dataList.length == 0) {
+          if (dataList.isEmpty) {
             print('the database is empty');
           } else {
             print(
@@ -128,6 +182,10 @@ class _FoodpageState extends State<Foodpage> {
                       IconButton(
                         onPressed: () => deleteCalories(dataEntry.id),
                         icon: Icon(Icons.delete),
+                      ),
+                      IconButton(
+                        onPressed: () => updateOpenCalories(dataEntry.id),
+                        icon: Icon(Icons.update),
                       ),
                     ],
                   ),
