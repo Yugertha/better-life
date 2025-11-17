@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:better_life/models/database.dart';
-//import 'package:better_life/models/tables/workout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

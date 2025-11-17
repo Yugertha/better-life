@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:better_life/models/database.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,14 +13,23 @@ class Foodpage extends StatefulWidget {
 
 class _FoodpageState extends State<Foodpage> {
   late final AppDatabase db;
+  late StreamSubscription<List<Calorie>> calorieSub;
 
   final TextEditingController nameController = TextEditingController();
   final countController = TextEditingController();
+
+  List<Calorie> calories = [];
 
   @override
   void initState() {
     super.initState();
     db = Provider.of<AppDatabase>(context, listen: false);
+
+    calorieSub = db.caloriesDao.streamCalories().listen((data) {
+      setState(() {
+        calories = data;
+      });
+    });
   }
 
   Future<void> addCalories() async {
@@ -42,7 +53,14 @@ class _FoodpageState extends State<Foodpage> {
     setState(() {});
   }
 
-  Future<void> updateOpenCalories(int id) {
+  Future<void> updateOpenCalories(int id) async {
+    final kcal = await db.caloriesDao.getCaloriesById(id);
+
+    if (kcal == null) return;
+
+    nameController.text = kcal.name;
+    countController.text = kcal.calorieAmount.toString();
+
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -138,53 +156,41 @@ class _FoodpageState extends State<Foodpage> {
   }
 
   @override
+  void dispose() {
+    calorieSub.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: openNewCalories,
         child: const Icon(Icons.add),
       ),
-      body: FutureBuilder(
-        future: db.caloriesDao.getCalories(),
-        //future: db.caloriesDao.getCalories(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('There was an Error '));
-          }
-          final dataList = snapshot.data ?? [];
-          if (dataList.isEmpty) {
-            print('the database is empty');
-          } else {
-            print(
-              'the database has ${dataList.length} entries with ${dataList[0].name} as the first entry',
-            );
-          }
-
-          if (dataList.isEmpty) {
-            return const Center(child: Text('The database is empty'));
-          }
-
-          return Center(
-            //child: Text('the database has ${dataList.length} entries.'),
-            child: ListView.builder(
-              itemCount: dataList.length,
+      body: calories.isEmpty
+          ? const Center(child: Text('the database is empty'))
+          : ListView.builder(
+              itemCount: calories.length,
               itemBuilder: (context, index) {
-                final dataEntry = dataList[index];
+                final c = calories[index];
 
                 return ListTile(
-                  title: Text(dataEntry.name),
-                  subtitle: Text(dataEntry.calorieAmount.toString()),
+                  title: Text(c.name),
+                  subtitle: Text('${c.calorieAmount} Kcal'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: () => deleteCalories(dataEntry.id),
+                        onPressed: () {
+                          deleteCalories(c.id);
+                        },
                         icon: Icon(Icons.delete),
                       ),
                       IconButton(
-                        onPressed: () => updateOpenCalories(dataEntry.id),
+                        onPressed: () {
+                          updateOpenCalories(c.id);
+                        },
                         icon: Icon(Icons.update),
                       ),
                     ],
@@ -192,9 +198,6 @@ class _FoodpageState extends State<Foodpage> {
                 );
               },
             ),
-          );
-        },
-      ),
     );
   }
 }
